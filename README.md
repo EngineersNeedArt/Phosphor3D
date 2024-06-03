@@ -17,6 +17,12 @@ In fact though I did not re-implement Bresenham's algorithm because I wanted the
 
 To be sure I could have skipped this exercise entirely and used an existing 3D library like Three.js. I don't doubt it's more performant still. But besides robbing me of the (re)learning process of 3D transformations, projecting to 2D, etc., I really wanted the old-school look. (And maybe I could contort Three.js to deliver on that as well, but there's still the learning part.)
 
+Models are JSON described. There are other models — like a dodecahedron, etc. Vertices are specified as homogeneous coordinates with the extra "w" component (always 1). I shoudl relax that though and add it in code.
+
+Faces (polygons) are vertex lists referring to the vertices by index. They are always convex. The vertices are listed in clockwise order to be considered an outward face. The polygons here are depicted as closed polygons — the first vertex listed again at the end. This is deliberate though. If you leave off repeating the first vertex the polygon will not stroke the final edge. You may want this if, for example, you want to create an otherwise concave polygon with two convex ones and don't want to see the "seam" where they are joined.
+
+Stroke and fill properties are optional. Faces can have an optional "doublesided" property — when true they are never treated as a backface, never culled. This might be useful for a tail surface of an airplane model where you don't want to have to represent a left and right face but instead just a single face that is drawn regardless of whether "frontface" or "backface".
+
 ### Results
 
 There's still something "not right" about the code. It turned out that the projection to 2D presented in Radtke & Lampton's book was pretty crude, causing significant distortion to any object not dead-center. Maybe a little too 80's for me. So with the help of our always-happy-to-please AI I was able to piece together projection code using a proper perspective matrix. But as I say, there are still issues I can't quite nail down.
