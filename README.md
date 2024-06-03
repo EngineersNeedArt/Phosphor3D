@@ -13,7 +13,7 @@ When I was younger I picked up Radtke & Lampton's "Build Your Own Flight Sim in 
 
 I wanted something fun again to work on so decided to make a kind of hybrid for the modern era. In this case write the code instead in Javascript and leverage the Canvas in HTML5 for my buffer.
 
-In fact though I did not re-implement Bresenham's algorithm because I wanted the performance, clipping for free, etc. that I could get using Canvas's built in line drawing calls. All the matrix manipulation, backface culling and depth sorting are written in Javascript, I only skipped out on implementing the final rasterization in code.
+In fact though I did not re-implement Bresenham's algorithm because I wanted the performance, clipping for free, etc. that I could get using Canvas's built in line drawing calls (but in fact you can get byte-level access to the Canvas buffer if you really want to write that error-accumulating code). All the matrix manipulation, backface culling and depth sorting are written in Javascript, I only skipped out on implementing the final rasterization in code.
 
 To be sure I could have skipped this exercise entirely and used an existing 3D library like Three.js. I don't doubt it's more performant still. But besides robbing me of the (re)learning process of 3D transformations, projecting to 2D, etc., I really wanted the old-school look. (And maybe I could contort Three.js to deliver on that as well, but there's still the learning part.)
 
