@@ -21,7 +21,7 @@ To be sure I could have skipped this exercise entirely and used an existing 3D l
 
 There's still something "not right" about the code. It turned out that the projection to 2D presented in Radtke & Lampton's book was pretty crude, causing significant distortion to any object not dead-center. Maybe a little too 80's for me. So with the help of our always-happy-to-please AI I was able to piece together projection code using a proper perspective matrix. But as I say, there are still issues I can't quite nail down.
 
-There is still some distortion that looks unnatural. Maybe a kind of wide-angle FOV kind of fish-eye distortion? I didn't think my FOV was too wide, but perhaps it is still.
+There is still some distortion that looks unnatural. Maybe a wide-angle FOV kind of fish-eye distortion? I didn't think my FOV was too wide, but perhaps it is still.
 
 There is no clipping when the camera enters an object (or indeed gets close at all). And objects behind the camera are rendered as well (upside down). So additional clipping, culling is still required.
 
