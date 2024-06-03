@@ -9,7 +9,7 @@ You can try it out, such as it is, <a href="https://engineersneedart.com/Phospho
 
 ### What
 
-When I was younger I picked up Radtke & Lampton's "Build Your Own Flight Sim in C++" — a book that walks the reader through creating a flight simulator from scratch. There are nearly no libraries used — as an example, they even present how to write an implementation of Bresenham's algorithm for rasterizing a line to a pixel buffer. I had a Mac and not a PC so I had to make adjustments. I also did not know C++ so had to refactor the code to straight C. It was a fun project. I took a Calculus III college course not long after and all the work I had done with matrices, cross and dot products for the flight simulator paid off in spades and helped me ace the class.
+When I was younger I picked up Radtke & Lampton's "Build Your Own Flight Sim in C++" — a book that walks the reader through creating a flight simulator from scratch. There are nearly no libraries used in the book. As an example, they even present how to write an implementation of Bresenham's algorithm for rasterizing a line to a pixel buffer. I had a Mac and not a PC so I had to make adjustments. I also did not know C++ so had to refactor the code to straight C. It was a fun project. I took a Calculus III college course not long after and all the work I had done with matrices, cross and dot products for the flight simulator paid off in spades and helped me ace the class.
 
 I wanted something fun again to work on so decided to make something of a hybrid for the modern era. In this case write the code instead in Javascript and leverage the Canvas in HTML5 for my buffer.
 
