@@ -18,7 +18,6 @@ export class Model3D {
 	constructor() {
 		this.vertices = [];
 		this.faces = [];
-		this.faces2 = [];
 		this.subfaces = null;
 	}
 	
@@ -26,9 +25,7 @@ export class Model3D {
 		if (jsonData.vertices) {
 			this.vertices = jsonData.vertices.slice();
 		}
-		if (jsonData.faces2) {
-			this.faces2 = jsonData.faces2.slice();
-		} else if (jsonData.faces) {
+		if (jsonData.faces) {
 			this.faces = jsonData.faces.slice();
 		}
 		if (jsonData.subfaces) {
@@ -78,18 +75,6 @@ export class Model3D {
 		for (let f = 0; f < this.faces.length; f++) {
 			const newPolygon = new Face();
 			let oneFace = this.faces[f];
-			const length = oneFace.length;
-			for (let v = 0; v < length; v++) {
-				newPolygon.vertices.push (projectedVertices[oneFace[v]]);
-			}
-			newPolygon.computeAverageDepth();
-			newPolygon.fill = this.fill;
-			newPolygon.stroke = this.stroke;
-			transformedPolygons.push (newPolygon);
-		}
-		for (let f = 0; f < this.faces2.length; f++) {
-			const newPolygon = new Face();
-			let oneFace = this.faces2[f];
 			const vertices = oneFace.vertices;
 			const length = vertices.length;
 			for (let v = 0; v < length; v++) {
