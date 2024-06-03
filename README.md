@@ -4,7 +4,7 @@ Experimenting with writing 80's era 3D rendering code but in Javascript and with
 <p align="center">
 <img width=800 src="https://github.com/EngineersNeedArt/Phosphor3D/blob/ad086708bc0d0eac654d26d8392c3311501a2609/images/screenshot.png" alt="Phosphor3D test screenshot.">
   <br>
-You can try it out, such as it is, <a href="https://engineersneedart.com/Phosphor3DTest/" target="_blank">here</a>. The arrow keys let you "drive" it.
+You can try it out, such as it is, <a href="https://engineersneedart.com/Phosphor3DTest/" target="_blank">here</a>. The arrow keys let you "drive" it. It's janky, if you drive it. If you want to reset it's location just refresh the page.
 </p>
 
 ### What
