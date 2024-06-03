@@ -27,7 +27,7 @@ There is no clipping when the camera enters an object (or indeed gets close at a
 
 Still some depth sorting issues. Some of the treads on the sandcrawler, as an example, do not display in the correct order. They may be correct with regard to the depth sorting algorithm, just not correct according to reality. Likely I have to adjust the model itself to resolve these — break the treads down into smaller polygons perhaps. Or maybe the depth of the faces is being calculated incorrectly.
 
-For what it's worth though, I did add a fun feature when I ran into similar depth-sorting issue with the windows and rectangular hatch on the side of the sandcrawler. In order to fix some depth-sorting issues where sometimes the surface the windows or hatch were "on" would draw last, covering them up, I introduced the notion of "sub-faces". I declare the window polygons, hatch polygons as "sub faces" of the larger polygons they're a part of. The subfaces are not depth-sorted and instead drawn immediately after their "parent" faces are rendered. This guarantees they are always drawn last and on top of the larger surface.
+For what it's worth though, I did add a fun feature when I ran into similar depth-sorting issue with the windows and rectangular hatch on the side of the sandcrawler. In order to fix some drawing issues where sometimes the surface the windows or hatch were "on" would draw last, covering them up, I introduced the notion of "sub-faces". I declare the window polygons, hatch polygons as "sub faces" of the larger polygons that they're a part of. The subfaces are not depth-sorted and instead drawn immediately after their "parent" faces are rendered. This guarantees they are always drawn on top of the larger surface.
 
 
 ### Future
