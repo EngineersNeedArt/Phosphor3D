@@ -12,6 +12,8 @@ export class Phosphor {
 		this.ctx = null;
 		this.cameraMatrix = new Matrix4();
 		this.camera = new Camera();
+		this.lmAscent = null;
+		this.lmDescent = null;
 		this.crawler = null;
 		this.treads = [];
 		this.rotXVel = (Math.PI / 500);
@@ -123,6 +125,18 @@ export class Phosphor {
 		});
 	}
 	
+	initLunarAscent (jsonData) {
+		this.lmAscent = new Model3D();
+		this.lmAscent.initFromJSONData(jsonData);
+		this.lmAscent.xRot = Math.PI / -2;
+	}
+	
+	initLunarDescent (jsonData) {
+		this.lmDescent = new Model3D();
+		this.lmDescent.initFromJSONData(jsonData);
+		this.lmDescent.parent = this.lmAscent;
+	}
+	
 	initCrawler (jsonData) {
 		this.crawler = new Model3D();
 		this.crawler.initFromJSONData(jsonData);
@@ -168,8 +182,10 @@ export class Phosphor {
 		
 		this.camera.y = 15;
 		
-		this.loadPixieModel ('models/crawler.json', this.initCrawler);
-		this.loadPixieModel ('models/tread.json', this.initTread);
+		// this.loadPixieModel ('models/crawler.json', this.initCrawler);
+		// this.loadPixieModel ('models/tread.json', this.initTread);
+		this.loadPixieModel ('models/lm_ascent.json', this.initLunarAscent);
+		this.loadPixieModel ('models/lm_descent.json', this.initLunarDescent);
 	}
 	
 	_depthSort (polygons) {
@@ -217,11 +233,18 @@ export class Phosphor {
 		this.camera.viewPortWidth = this.ctx.canvas.width;
 		this.camera.viewPortHeight = this.ctx.canvas.height;
 		
-		if ((this.crawler !== null) && (this.crawler !== undefined)) {
+		if (this.lmAscent) {
+			polygons.push.apply(polygons, this.lmAscent.transformedPolygons (this.camera));
+		}
+		if (this.lmDescent) {
+			polygons.push.apply(polygons, this.lmDescent.transformedPolygons (this.camera));
+		}
+		
+		if (this.crawler) {
 			polygons.push.apply(polygons, this.crawler.transformedPolygons (this.camera));
 		}
 		
-		if ((this.treads !== null) && (this.treads !== undefined)) {
+		if (this.treads) {
 			for (let t = 0; t < this.treads.length; t++) {
 				const oneTread = this.treads[t];
 				polygons.push.apply(polygons, oneTread.transformedPolygons (this.camera));
@@ -264,6 +287,10 @@ export class Phosphor {
 	animationLoop = (currentTime) => {
 		var fps = this.fps.fps ();
 		var startTime = this.fps.startFrame ();
+		
+		if (this.lmAscent) {
+			this.lmAscent.yRot = this.lmAscent.yRot - this.rotYVel;
+		}
 		
 		if (this.crawler) {
 			if (this.userControlling) {
