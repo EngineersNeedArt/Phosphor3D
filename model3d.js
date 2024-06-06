@@ -66,45 +66,53 @@ export class Model3D {
 		return m;
 	}
 	
-	transformedPolygons (camera) {
+	transformedFaces (camera) {
+		// Transform vertices.
+		const m = this.localMatrix();
+		m.multiplyMatrix (camera.transform());
+		const transformedVertices = m.multiplyPoints (this.vertices)
+		
 		// Project vertices.
-		const projectedVertices = camera.projectPoints (this.localMatrix(), this.vertices);
+		const projectedVertices = camera.projectPoints (transformedVertices);
 		
 		// Create polygons with new vertices.
-		const transformedPolygons = [];
+		const transformedFaces = [];
 		for (let f = 0; f < this.faces.length; f++) {
-			const newPolygon = new Face();
+			const newFace = new Face();
 			let oneFace = this.faces[f];
 			const vertices = oneFace.vertices;
 			const length = vertices.length;
+			let depth = 0;
 			for (let v = 0; v < length; v++) {
-				newPolygon.vertices.push (projectedVertices[vertices[v]]);
+				const index = vertices[v];
+				const [x, y, z] = transformedVertices[index];
+				depth += z;
+				newFace.vertices.push (projectedVertices[index]);
 			}
-			newPolygon.computeAverageDepth();
-			newPolygon.fill = this.fill;
-			newPolygon.stroke = this.stroke;
+			newFace.depth = depth / length;
+			newFace.fill = this.fill;
+			newFace.stroke = this.stroke;
 			if (oneFace.doublesided) {
-				newPolygon.doublesided = oneFace.doublesided;
+				newFace.doublesided = oneFace.doublesided;
 			}
-			transformedPolygons.push (newPolygon);
+			transformedFaces.push (newFace);
 		}
 		
 		if (this.subfaces) {
 			for (let s = 0; s < this.subfaces.length; s++) {
-				const newPolygon = new Face();
+				const newFace = new Face();
 				let oneSubface = this.subfaces[s];
 				const vertices = oneSubface.vertices;
 				const length = vertices.length;
 				for (let v = 0; v < length; v++) {
-					newPolygon.vertices.push (projectedVertices[vertices[v]]);
+					newFace.vertices.push (projectedVertices[vertices[v]]);
 				}
-				newPolygon.fill = this.fill;
-				newPolygon.stroke = this.stroke;
+				newFace.fill = this.fill;
+				newFace.stroke = this.stroke;
 				const parentIndex = oneSubface.parent;
-				transformedPolygons[parentIndex].subfaces.push(newPolygon);
+				transformedFaces[parentIndex].subfaces.push(newFace);
 			}
 		}
-		
-		return transformedPolygons;
+		return transformedFaces;
 	}
 }

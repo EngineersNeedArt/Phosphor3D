@@ -6,19 +6,9 @@ export class Face {
 	stroke = null;
 	fill = null;
 	doublesided = false;
+	depth = 0;
 	
 	constructor() {
-		this.depth = 0;
-	}
-	
-	computeAverageDepth () {
-		var totalDepth = 0;
-		const numVertices = this.vertices.length - 1;
-		for (let v = 0; v < numVertices; v++) {
-			const [x, y, z] = this.vertices[v];
-			totalDepth += z;
-		}
-		this.depth = totalDepth / numVertices;
 	}
 	
 	isBackface () {

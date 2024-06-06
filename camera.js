@@ -20,7 +20,7 @@ export class Camera {
 		this.far = 100;
 	}
 	
-	_getCameraTransform () {
+	transform () {
 		const m = new Matrix4 ();
 		m.translate (this.x, this.y, this.z);
 		m.rotateX (this.xRot);
@@ -35,12 +35,11 @@ export class Camera {
 		return m;
 	}
 	
-	projectPoints(matrix, points) {
-		matrix.multiplyMatrix (this._getCameraTransform());
+	projectPoints(points) {
 		const width = this.viewPortWidth;
 		const height = this.viewPortHeight;
-		matrix.multiplyMatrix (this._getPerspectiveTransform());
-		const multipliedPoints = matrix.multiplyPoints (points)
+		const m = this._getPerspectiveTransform();
+		const multipliedPoints = m.multiplyPoints (points);
 		return multipliedPoints.map(point => {
 			const [x, y, z] = point;
 			const screenX = (x + 1) / 2 * width;

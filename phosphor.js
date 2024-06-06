@@ -190,7 +190,8 @@ export class Phosphor {
 	
 	_depthSort (polygons) {
 		// Sort polygons by depth in ascending order
-		polygons.sort((a, b) => a.depth - b.depth);
+		// polygons.sort((a, b) => a.depth - b.depth);
+		polygons.sort((a, b) => b.depth - a.depth);
 	}
 	
 	_drawPolygon (polygon) {		
@@ -219,13 +220,15 @@ export class Phosphor {
 	draw () {
 		this.ctx.fillStyle = 'black';
 		this.ctx.fillRect (0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.fillStyle = "rgb(32, 32, 32)";
+		this.ctx.fillRect (0, this.canvas.height / 2, this.canvas.width, this.canvas.height);
 		this.ctx.lineJoin = "bevel";
 		
 		this.ctx.beginPath();
 		this.ctx.moveTo (0, this.canvas.height / 2.0);
 		this.ctx.lineTo (this.canvas.width, this.canvas.height / 2.0);
 		this.ctx.lineWidth = 3;
-		this.ctx.strokeStyle = "rgb(255, 165, 0)";
+		this.ctx.strokeStyle = "rgb(128, 128, 128)";
 		this.ctx.stroke();
 
 		let polygons = [];
@@ -234,20 +237,20 @@ export class Phosphor {
 		this.camera.viewPortHeight = this.ctx.canvas.height;
 		
 		if (this.lmAscent) {
-			polygons.push.apply(polygons, this.lmAscent.transformedPolygons (this.camera));
+			polygons.push.apply(polygons, this.lmAscent.transformedFaces (this.camera));
 		}
 		if (this.lmDescent) {
-			polygons.push.apply(polygons, this.lmDescent.transformedPolygons (this.camera));
+			polygons.push.apply(polygons, this.lmDescent.transformedFaces (this.camera));
 		}
 		
 		if (this.crawler) {
-			polygons.push.apply(polygons, this.crawler.transformedPolygons (this.camera));
+			polygons.push.apply(polygons, this.crawler.transformedFaces (this.camera));
 		}
 		
 		if (this.treads) {
 			for (let t = 0; t < this.treads.length; t++) {
 				const oneTread = this.treads[t];
-				polygons.push.apply(polygons, oneTread.transformedPolygons (this.camera));
+				polygons.push.apply(polygons, oneTread.transformedFaces (this.camera));
 			}
 		}
 		

@@ -6,8 +6,8 @@
   "xRot": 0,
   "yRot": 0,
   "zRot": 0,
-  "stroke": "rgb(255, 255, 0)",
-  "fill": "rgb(64, 64, 0)",
+  "stroke": "rgb(255, 165, 0)",
+  "fill": "rgb(51, 33, 0)",
   "parent": null,
   "vertices": [
     [-13.4, -26.0, 26.9, 1],
