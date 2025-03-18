@@ -1,4 +1,4 @@
-// model3d3.js -- further improvements from Deep Seek.
+// model3d.js -- fixed up by Deep Seek.
 
 import { Matrix4 } from './matrix4.js';
 import { Face } from './face.js';
@@ -18,7 +18,6 @@ export class Model3D {
     #vertices = [];
     #faces = [];
     #subfaces = null;
-    #cachedTransformMatrix = null;
 
     /**
      * Creates a new Model3D instance.
@@ -39,7 +38,6 @@ export class Model3D {
 
     set x(value) {
         this.#x = value;
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get y() {
@@ -48,7 +46,6 @@ export class Model3D {
 
     set y(value) {
         this.#y = value;
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get z() {
@@ -57,7 +54,6 @@ export class Model3D {
 
     set z(value) {
         this.#z = value;
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get scale() {
@@ -66,7 +62,6 @@ export class Model3D {
 
     set scale(value) {
         this.#scale = value;
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get xRot() {
@@ -75,7 +70,6 @@ export class Model3D {
 
     set xRot(value) {
         this.#xRot = this.#wrapAngle(value);
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get yRot() {
@@ -84,7 +78,6 @@ export class Model3D {
 
     set yRot(value) {
         this.#yRot = this.#wrapAngle(value);
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get zRot() {
@@ -93,7 +86,6 @@ export class Model3D {
 
     set zRot(value) {
         this.#zRot = this.#wrapAngle(value);
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get stroke() {
@@ -118,7 +110,6 @@ export class Model3D {
 
     set parent(value) {
         this.#parent = value;
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get vertices() {
@@ -127,7 +118,6 @@ export class Model3D {
 
     set vertices(value) {
         this.#vertices = value;
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     get faces() {
@@ -151,13 +141,15 @@ export class Model3D {
      * @param {Object} jsonData - The JSON data containing model properties.
      */
     initFromJSONData(jsonData) {
-        if (!jsonData) {
-            throw new Error('JSON data is required.');
+        if (jsonData.vertices) {
+            this.#vertices = jsonData.vertices.slice();
         }
-
-        this.#vertices = jsonData.vertices ? jsonData.vertices.slice() : [];
-        this.#faces = jsonData.faces ? jsonData.faces.slice() : [];
-        this.#subfaces = jsonData.subfaces ? jsonData.subfaces.slice() : null;
+        if (jsonData.faces) {
+            this.#faces = jsonData.faces.slice();
+        }
+        if (jsonData.subfaces) {
+            this.#subfaces = jsonData.subfaces.slice();
+        }
 
         this.#x = jsonData.x || 0;
         this.#y = jsonData.y || 0;
@@ -168,8 +160,6 @@ export class Model3D {
         this.#zRot = this.#wrapAngle(jsonData.zRot || 0);
         this.#fill = jsonData.fill || null;
         this.#stroke = jsonData.stroke || null;
-
-        this.#cachedTransformMatrix = null; // Invalidate cache
     }
 
     /**
@@ -178,18 +168,12 @@ export class Model3D {
      * @returns {number} The wrapped angle.
      */
     #wrapAngle(angle) {
-        if (typeof angle !== 'number' || isNaN(angle) || !isFinite(angle)) {
-            console.warn(`Invalid angle: ${angle}. Defaulting to 0.`);
-            return 0;
-        }
-
         if ((angle < 0) || (angle > 2 * Math.PI)) {
             angle = angle % (2 * Math.PI);
             if (angle < 0) {
                 angle += 2 * Math.PI;
             }
         }
-
         return angle;
     }
 
@@ -206,12 +190,7 @@ export class Model3D {
         m.translate(this.#x, this.#y, this.#z);
 
         if (this.#parent) {
-            const parentMatrix = this.#parent.localMatrix();
-            if (parentMatrix instanceof Matrix4) {
-                m.multiplyMatrix(parentMatrix);
-            } else {
-                console.warn('Parent matrix is not a valid Matrix4 object.');
-            }
+            m.multiplyMatrix(this.#parent.localMatrix());
         }
 
         return m;
@@ -223,23 +202,10 @@ export class Model3D {
      * @returns {Array<Face>} The transformed faces.
      */
     transformedFaces(camera) {
-        if (!camera || typeof camera.transform !== 'function') {
-            throw new Error('Invalid camera object.');
-        }
-
-        if (!this.#vertices.length || !this.#faces.length) {
-            console.warn('No vertices or faces to transform.');
-            return [];
-        }
-
-        // Recompute the transformation matrix only if necessary.
-        if (!this.#cachedTransformMatrix) {
-            const m = this.localMatrix();
-            m.multiplyMatrix(camera.transform());
-            this.#cachedTransformMatrix = m;
-        }
-
-        const transformedVertices = this.#cachedTransformMatrix.multiplyPoints(this.#vertices);
+        // Transform vertices.
+        const m = this.localMatrix();
+        m.multiplyMatrix(camera.transform());
+        const transformedVertices = m.multiplyPoints(this.#vertices);
 
         // Create polygons with transformed vertices.
         const transformedFaces = [];
@@ -281,13 +247,8 @@ export class Model3D {
 
                 const parentIndex = oneSubface.parent;
                 const parent = transformedFaces[parentIndex];
-
-                if (parent) {
-                    newFace.depth = parent.depth;
-                    parent.subfaces.push(newFace);
-                } else {
-                    console.warn(`Parent face at index ${parentIndex} not found.`);
-                }
+                newFace.depth = parent.depth;
+                parent.subfaces.push(newFace);
             }
         }
 

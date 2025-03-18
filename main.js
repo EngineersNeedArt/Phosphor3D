@@ -1,8 +1,8 @@
 // main.js
 
-import { Phosphor } from './phosphor.js';
+import { Phosphor3D } from './phosphor3D.js';
 
-const phosphor = new Phosphor();
+const phosphor = new Phosphor3D();
 const canvasElement = document.getElementById('myCanvas');
 resize();
 phosphor.init(canvasElement);

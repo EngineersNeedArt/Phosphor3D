@@ -1,4 +1,4 @@
-// phosphor.js
+// phosphor3D.js
 
 import { Matrix4 } from './matrix4.js';
 import { Camera } from './camera.js';
@@ -6,7 +6,7 @@ import { Face } from './face.js';
 import { Model3D } from './model3d.js';
 import { FPS } from './fps.js';
 
-export class Phosphor {
+export class Phosphor3D {
 	constructor () {
 		this.canvas = null;
 		this.ctx = null;
@@ -27,6 +27,8 @@ export class Phosphor {
 		this.userControlling = false;
 		this.upKeyDown = false;
 		this.downKeyDown = false;
+		
+		this.crawlerDemo = false;
 	}
 	
 	_primaryAction (down) {
@@ -182,37 +184,44 @@ export class Phosphor {
 		
 		this.camera.y = 15;
 		
-		// this.loadPixieModel ('models/crawler.json', this.initCrawler);
-		// this.loadPixieModel ('models/tread.json', this.initTread);
-		this.loadPixieModel ('models/lm_ascent.json', this.initLunarAscent);
-		this.loadPixieModel ('models/lm_descent.json', this.initLunarDescent);
+		if (this.crawlerDemo) {
+			this.loadPixieModel ('models/crawler.json', this.initCrawler);
+			this.loadPixieModel ('models/tread.json', this.initTread);
+		} else {
+			this.loadPixieModel ('models/lm_ascent.json', this.initLunarAscent);
+			this.loadPixieModel ('models/lm_descent.json', this.initLunarDescent);
+		}
 	}
 	
-	_depthSort (polygons) {
-		// Sort polygons by depth in ascending order
-		// polygons.sort((a, b) => a.depth - b.depth);
-		polygons.sort((a, b) => b.depth - a.depth);
+	_depthSort (faces) {
+		// Sort faces by depth in ascending order
+		// faces.sort((a, b) => a.depth - b.depth);
+		faces.sort((a, b) => b.depth - a.depth);
 	}
 	
-	_drawPolygon (polygon) {		
+	_drawFace (face) {		
 		this.ctx.beginPath();
-		let vertex = polygon.vertices[0];
+		let vertex = face.vertices[0];
 		this.ctx.moveTo (vertex[0], vertex[1]);
-		for (let v = 1; v < polygon.vertices.length; v++) {
-			vertex = polygon.vertices[v];
+		for (let v = 1; v < face.vertices.length; v++) {
+			vertex = face.vertices[v];
 			this.ctx.lineTo(vertex[0], vertex[1]);
 		}
 		
 		// Fill.
-		if (polygon.fill) {
-			this.ctx.fillStyle = polygon.fill;
+		if (face.fill) {
+			this.ctx.fillStyle = face.fill;
 			this.ctx.fill();
 		}
 		
 		// Stroke.
-		if (polygon.stroke) {
-			this.ctx.lineWidth = 3;
-			this.ctx.strokeStyle = polygon.stroke;
+		if (face.stroke) {
+			if (this.crawlerDemo) {
+				this.ctx.lineWidth = 128 / face.depth;				
+			} else {
+				this.ctx.lineWidth = 256 / face.depth;
+			}
+			this.ctx.strokeStyle = face.stroke;
 			this.ctx.stroke();
 		}
 	}
@@ -231,44 +240,46 @@ export class Phosphor {
 		this.ctx.strokeStyle = "rgb(128, 128, 128)";
 		this.ctx.stroke();
 
-		let polygons = [];
+		let faces = [];
 		
 		this.camera.viewPortWidth = this.ctx.canvas.width;
 		this.camera.viewPortHeight = this.ctx.canvas.height;
 		
 		if (this.lmAscent) {
-			polygons.push.apply(polygons, this.lmAscent.transformedFaces (this.camera));
+			faces.push.apply(faces, this.lmAscent.transformedFaces (this.camera));
 		}
 		if (this.lmDescent) {
-			polygons.push.apply(polygons, this.lmDescent.transformedFaces (this.camera));
+			faces.push.apply(faces, this.lmDescent.transformedFaces (this.camera));
 		}
-		
 		if (this.crawler) {
-			polygons.push.apply(polygons, this.crawler.transformedFaces (this.camera));
+			faces.push.apply(faces, this.crawler.transformedFaces (this.camera));
 		}
-		
 		if (this.treads) {
 			for (let t = 0; t < this.treads.length; t++) {
 				const oneTread = this.treads[t];
-				polygons.push.apply(polygons, oneTread.transformedFaces (this.camera));
+				faces.push.apply(faces, oneTread.transformedFaces (this.camera));
 			}
 		}
 		
-		this._depthSort (polygons);
+		this._depthSort (faces);
 		
-		if (polygons.length > 0) {
-			for (let p = 0; p < polygons.length; p++) {
-				const onePoly = polygons[p];
-				if (onePoly.isBackface()) {
+		if (faces.length > 0) {
+			for (let p = 0; p < faces.length; p++) {
+				const onePoly = faces[p];
+				
+				onePoly.vertices = this.camera.projectPoints(onePoly.vertices);
+				onePoly.computeIsBackface();
+				if (onePoly.backface) {
 					continue;
 				}
-				this._drawPolygon (onePoly);
+				this._drawFace (onePoly);
 				
 				const subfaces = onePoly.subfaces;
 				if (subfaces) {
 					for (let s = 0; s < subfaces.length; s++) {
 						const oneSubface = subfaces[s];
-						this._drawPolygon (oneSubface);
+						oneSubface.vertices = this.camera.projectPoints(oneSubface.vertices);
+						this._drawFace (oneSubface);
 					}
 				}
 			}

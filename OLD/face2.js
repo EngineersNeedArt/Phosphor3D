@@ -1,4 +1,4 @@
-// face.js -- DeepSeek made more changes here.
+// face.js
 
 export class Face {
     // Private fields
@@ -10,6 +10,14 @@ export class Face {
     #depth = 0;
     #backface = false;
 
+    /**
+     * Creates a new Face instance.
+     * @param {Array<Array<number>>} vertices - The vertices of the face.
+     * @param {Array<Face>} subfaces - The subfaces of the face.
+     * @param {string} stroke - The stroke color of the face.
+     * @param {string} fill - The fill color of the face.
+     * @param {boolean} doublesided - Whether the face is double-sided.
+     */
     constructor(vertices = [], subfaces = [], stroke = null, fill = null, doublesided = false) {
         this.#vertices = vertices;
         this.#subfaces = subfaces;
@@ -104,8 +112,6 @@ export class Face {
 
     /**
      * Computes whether the face is a backface based on its vertices.
-     * Assumes a right-handed coordinate system (Z-axis points out of the screen).
-     * For a left-handed system, flip the sign of the cross product.
      */
     computeIsBackface() {
         if (this.#doublesided || this.#vertices.length < 3) {
@@ -113,20 +119,15 @@ export class Face {
             return;
         }
 
-        // Get the first three vertices of the face
+        // Assume right-handed coordinate system
         const [v1, v2, v3] = this.#vertices;
-
-        // Calculate two edges of the face
         const e1 = [v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]];
         const e2 = [v3[0] - v2[0], v3[1] - v2[1], v3[2] - v2[2]];
 
-        // Calculate the cross product in 2D (ignoring Z-axis for simplicity)
+        // Cross product in 2D (ignoring Z-axis for simplicity)
         const cp = e1[0] * e2[1] - e1[1] * e2[0];
 
         // Determine backface based on the sign of the cross product
-        // For a right-handed system: cp > 0 means backface
-        // For a left-handed system: cp < 0 means backface
-        this.#backface = cp > 0; // Right-handed system
-        // this.#backface = cp < 0; // Left-handed system
+        this.#backface = cp > 0;
     }
 }
