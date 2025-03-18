@@ -1,184 +1,109 @@
-// camera2.js	Improvements made by Deep Seek.
+// camera.js (Grok 3 optimized)
 
 import { Matrix4 } from './matrix4.js';
 
 export class Camera {
-    // Private fields
-    #viewPortWidth = 1600;
-    #viewPortHeight = 900;
-    #x = 0;
-    #y = 0;
-    #z = 0;
-    #xRot = 0;
-    #yRot = 0;
-    #zRot = 0;
+    #position = new Float32Array([0, 0, 0]); // [x, y, z]
+    #rotation = new Float32Array([0, 0, 0]); // [xRot, yRot, zRot]
+    #viewPort = new Float32Array([1600, 900]); // [width, height]
+    #projectionParams = new Float32Array([0.8, 1, 100]); // [fov, near, far]
     #velocity = 0;
-    #fov = 0.8;
-    #near = 1;
-    #far = 100;
-    #perspectiveMatrix = null; // Cached perspective matrix
+    #perspectiveMatrix = new Matrix4();
+    #viewMatrix = new Matrix4();
 
-    /**
-     * Creates a new Camera instance.
-     * @param {number} viewPortWidth - The width of the viewport.
-     * @param {number} viewPortHeight - The height of the viewport.
-     * @param {number} fov - The field of view in radians.
-     * @param {number} near - The near clipping plane.
-     * @param {number} far - The far clipping plane.
-     */
     constructor(viewPortWidth = 1600, viewPortHeight = 900, fov = 0.8, near = 1, far = 100) {
-        this.#viewPortWidth = viewPortWidth;
-        this.#viewPortHeight = viewPortHeight;
-        this.#fov = fov;
-        this.#near = near;
-        this.#far = far;
+        this.#viewPort[0] = viewPortWidth;
+        this.#viewPort[1] = viewPortHeight;
+        this.#projectionParams[0] = fov;
+        this.#projectionParams[1] = near;
+        this.#projectionParams[2] = far;
         this.#updatePerspectiveMatrix();
     }
 
-    // Getters and setters for private fields
-    get viewPortWidth() {
-        return this.#viewPortWidth;
-    }
+    get x() { return this.#position[0]; }
+    set x(value) { this.#position[0] = value; this.#viewMatrixDirty = true; }
 
+    get y() { return this.#position[1]; }
+    set y(value) { this.#position[1] = value; this.#viewMatrixDirty = true; }
+
+    get z() { return this.#position[2]; }
+    set z(value) { this.#position[2] = value; this.#viewMatrixDirty = true; }
+
+    get xRot() { return this.#rotation[0]; }
+    set xRot(value) { this.#rotation[0] = value; this.#viewMatrixDirty = true; }
+
+    get yRot() { return this.#rotation[1]; }
+    set yRot(value) { this.#rotation[1] = value; this.#viewMatrixDirty = true; }
+
+    get zRot() { return this.#rotation[2]; }
+    set zRot(value) { this.#rotation[2] = value; this.#viewMatrixDirty = true; }
+
+    get viewPortWidth() { return this.#viewPort[0]; }
     set viewPortWidth(value) {
         if (value <= 0) throw new Error('Viewport width must be greater than 0.');
-        this.#viewPortWidth = value;
+        this.#viewPort[0] = value;
         this.#updatePerspectiveMatrix();
     }
 
-    get viewPortHeight() {
-        return this.#viewPortHeight;
-    }
-
+    get viewPortHeight() { return this.#viewPort[1]; }
     set viewPortHeight(value) {
         if (value <= 0) throw new Error('Viewport height must be greater than 0.');
-        this.#viewPortHeight = value;
+        this.#viewPort[1] = value;
         this.#updatePerspectiveMatrix();
     }
 
-    get fov() {
-        return this.#fov;
-    }
+    get fov() { return this.#projectionParams[0]; }
+    set fov(value) { this.#projectionParams[0] = value; this.#updatePerspectiveMatrix(); }
 
-    set fov(value) {
-        this.#fov = value;
-        this.#updatePerspectiveMatrix();
-    }
+    get near() { return this.#projectionParams[1]; }
+    set near(value) { this.#projectionParams[1] = value; this.#updatePerspectiveMatrix(); }
 
-    get near() {
-        return this.#near;
-    }
+    get far() { return this.#projectionParams[2]; }
+    set far(value) { this.#projectionParams[2] = value; this.#updatePerspectiveMatrix(); }
 
-    set near(value) {
-        this.#near = value;
-        this.#updatePerspectiveMatrix();
-    }
+    get velocity() { return this.#velocity; }
+    set velocity(value) { this.#velocity = value; }
 
-    get far() {
-        return this.#far;
-    }
-
-    set far(value) {
-        this.#far = value;
-        this.#updatePerspectiveMatrix();
-    }
-
-    get x() {
-        return this.#x;
-    }
-
-    set x(value) {
-        this.#x = value;
-    }
-
-    get y() {
-        return this.#y;
-    }
-
-    set y(value) {
-        this.#y = value;
-    }
-
-    get z() {
-        return this.#z;
-    }
-
-    set z(value) {
-        this.#z = value;
-    }
-
-    get xRot() {
-        return this.#xRot;
-    }
-
-    set xRot(value) {
-        this.#xRot = value;
-    }
-
-    get yRot() {
-        return this.#yRot;
-    }
-
-    set yRot(value) {
-        this.#yRot = value;
-    }
-
-    get zRot() {
-        return this.#zRot;
-    }
-
-    set zRot(value) {
-        this.#zRot = value;
-    }
-
-    get velocity() {
-        return this.#velocity;
-    }
-
-    set velocity(value) {
-        this.#velocity = value;
-    }
-
-    /**
-     * Updates the cached perspective matrix.
-     */
     #updatePerspectiveMatrix() {
-        const m = new Matrix4();
-        m.setPerspective(this.#fov, this.#viewPortWidth / this.#viewPortHeight, this.#near, this.#far);
-        this.#perspectiveMatrix = m;
+        this.#perspectiveMatrix.setPerspective(
+            this.#projectionParams[0],
+            this.#viewPort[0] / this.#viewPort[1],
+            this.#projectionParams[1],
+            this.#projectionParams[2]
+        );
     }
 
-    /**
-     * Computes the transformation matrix for the camera.
-     * @returns {Matrix4} The transformation matrix.
-     */
+    #viewMatrixDirty = true;
     transform() {
         const m = new Matrix4();
-        m.translate(this.#x, this.#y, this.#z);
-        m.rotateX(this.#xRot);
-        m.rotateY(this.#yRot);
-        m.rotateZ(this.#zRot);
+        m.translate(this.#position[0], this.#position[1], this.#position[2]);
+        m.rotateX(this.#rotation[0]);
+        m.rotateY(this.#rotation[1]);
+        m.rotateZ(this.#rotation[2]);
         return m;
     }
+    
+    // transform() {
+    //     if (this.#viewMatrixDirty) {
+    //         this.#viewMatrix.setIdentity()
+    //             .rotateZ(-this.#rotation[2])
+    //             .rotateY(-this.#rotation[1])
+    //             .rotateX(-this.#rotation[0])
+    //             .translate(-this.#position[0], -this.#position[1], -this.#position[2]);
+    //         this.#viewMatrixDirty = false;
+    //     }
+    //     return this.#viewMatrix;
+    // }
 
-    /**
-     * Projects 3D points onto the 2D viewport.
-     * @param {Array<Array<number>>} points - An array of 3D points (each point is [x, y, z]).
-     * @returns {Array<Array<number>>} An array of 2D points (each point is [screenX, screenY, z]).
-     */
     projectPoints(points) {
-        if (!this.#perspectiveMatrix) {
-            throw new Error('Perspective matrix is not initialized.');
+        const widthHalf = this.#viewPort[0] * 0.5;
+        const heightHalf = this.#viewPort[1] * 0.5;
+        const projected = this.#perspectiveMatrix.multiplyPoints(points);
+        for (let i = 0; i < projected.length; i++) {
+            const p = projected[i];
+            p[0] = (p[0] + 1) * widthHalf;
+            p[1] = (1 - p[1]) * heightHalf;
         }
-
-        const width = this.#viewPortWidth;
-        const height = this.#viewPortHeight;
-        const multipliedPoints = this.#perspectiveMatrix.multiplyPoints(points);
-
-        return multipliedPoints.map(([x, y, z]) => {
-            const screenX = ((x + 1) / 2) * width;
-            const screenY = ((1 - y) / 2) * height;
-            return [screenX, screenY, z];
-        });
+        return projected;
     }
 }

@@ -1,4 +1,4 @@
-// main.js
+// main.js (Grok 3 optimized)
 
 import { Phosphor3D } from './phosphor3D.js';
 
@@ -9,14 +9,11 @@ phosphor.init(canvasElement);
 phosphor.begin();
 
 function resize() {
-	canvasElement.width = window.innerWidth;
-	canvasElement.height = window.innerHeight - 160;
+    canvasElement.width = window.innerWidth;
+    canvasElement.height = window.innerHeight - 160;
 }
 
-function windowDidResize() {
-	resize();
-	phosphor.draw();
-}
-
-// Resize the canvas when the window is resized
-window.addEventListener('resize', windowDidResize);
+window.addEventListener('resize', () => {
+    resize();
+    phosphor.draw();
+});
