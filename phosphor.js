@@ -12,7 +12,10 @@ export class Phosphor {
 		this.ctx = null;
 		this.cameraMatrix = new Matrix4();
 		this.camera = new Camera();
-		this.crawler = null;
+		// Created up front (not null) so that if the tread.json fetch resolves
+		// before the crawler.json fetch does, `tread.parent = this.crawler` still
+		// points at a real, stable object -- see initCrawler()/initTread() below.
+		this.crawler = new Model3D();
 		this.treads = [];
 		this.rotXVel = (Math.PI / 500);
 		this.rotYVel = (Math.PI / 500);
@@ -142,7 +145,15 @@ export class Phosphor {
 	}
 	
 	initCrawler (jsonData) {
-		this.crawler = new Model3D();
+		// NOTE: intentionally populating the existing this.crawler object (created in the
+		// constructor) rather than doing `this.crawler = new Model3D()` here. crawler.json
+		// and tread.json load via independent, unordered fetches (see init() below); if this
+		// assigned a *new* object, any tread whose fetch resolved first would have already
+		// captured a reference to the *old* crawler object and would end up parented to an
+		// empty, disconnected model -- rendering at the origin instead of attached to the
+		// crawler, with no error, and only on the runs where that fetch happened to win the
+		// race (e.g. depending on browser cache state). That's the "treads occasionally
+		// don't draw" bug.
 		this.crawler.initFromJSONData(jsonData);
 		this.crawler.yRot = Math.PI / -2;
 	}
