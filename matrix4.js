@@ -16,15 +16,25 @@ export class Matrix4 {
 		];
 	}
 	
-	setPerspective(fov, aspect, near, far) {
-		const f = 1.0 / Math.tan(fov / 2.0);
+	// `f` is the vertical scale factor of the projection (traditionally 1/tan(vFov/2)).
+	// It's passed in already computed rather than derived from an fov angle here, so
+	// the caller (Camera) can decide whether it's holding vertical or horizontal FOV
+	// constant across aspect ratios.
+	//
+	// NOTE: this matrix is transposed relative to the textbook (column-vector) form,
+	// to match the row-vector convention (v' = v * M) used everywhere else in this
+	// file -- translate()/rotateX/Y/Z() all put their translation/rotation terms in
+	// the layout row-vector multiplication expects. Without the transpose here, the
+	// perspective divide ends up using z*2*near*far/(near-far) instead of a clean -z,
+	// which silently scales the effective FOV away from whatever value was requested.
+	setPerspective(f, aspect, near, far) {
 		const rangeInv = 1.0 / (near - far);
 		
 		this.elements = [
 			f / aspect, 0, 0, 0,
 			0, f, 0, 0,
-			0, 0, (far + near) * rangeInv, 2 * near * far * rangeInv,
-			0, 0, -1, 0
+			0, 0, (far + near) * rangeInv, -1,
+			0, 0, 2 * near * far * rangeInv, 0
 		];
 	}
 	

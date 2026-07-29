@@ -13,9 +13,15 @@ export class Camera {
 	zRot = 0;
 	velocity = 0;
 	
+	// `fov` is the HORIZONTAL field of view, in radians, and stays constant no
+	// matter what the canvas's aspect ratio is (resizing the window changes how
+	// much vertical scene you see, not how stretched the edges look).
+	// ~1.13 rad = 65 degrees, a "normal lens" feel with minimal edge distortion.
+	static FOV_MIN = 20 * Math.PI / 180;
+	static FOV_MAX = 150 * Math.PI / 180;
+	
 	constructor() {
-		// this.fov = 1.5;		// About 86 degrees.
-		this.fov = 1.0;
+		this.fov = 65 * Math.PI / 180;
 		this.near = 1;
 		this.far = 100;
 	}
@@ -31,7 +37,11 @@ export class Camera {
 	
 	_getPerspectiveTransform () {
 		const m = new Matrix4 ();
-		m.setPerspective (this.fov, this.viewPortWidth / this.viewPortHeight, this.near, this.far);
+		const aspect = this.viewPortWidth / this.viewPortHeight;
+		// Derive the vertical scale factor that yields our fixed horizontal FOV
+		// at this aspect ratio: f = aspect / tan(hFov / 2).
+		const f = aspect / Math.tan (this.fov / 2.0);
+		m.setPerspective (f, aspect, this.near, this.far);
 		return m;
 	}
 	

@@ -25,6 +25,8 @@ export class Phosphor {
 		this.userControlling = false;
 		this.upKeyDown = false;
 		this.downKeyDown = false;
+		this.fovDecreaseKeyDown = false;
+		this.fovIncreaseKeyDown = false;
 	}
 	
 	_primaryAction (down) {
@@ -86,6 +88,14 @@ export class Phosphor {
 		this.userControlling = true;
 	}
 	
+	_fovAction (direction, down) {
+		if (direction < 0) {
+			this.fovDecreaseKeyDown = down;
+		} else {
+			this.fovIncreaseKeyDown = down;
+		}
+	}
+	
 	_initKeyListeners () {
 		document.addEventListener ("keydown", (e) =>{
 			if ((e.code == "Space") || (e.code == "Enter")) {
@@ -103,6 +113,10 @@ export class Phosphor {
 				this._leftAction (true);
 			} else if ((e.code == "ArrowRight") || (e.code == "KeyD")) {
 				this._rightAction (true);
+			} else if (e.code == "BracketLeft") {
+				this._fovAction (-1, true);
+			} else if (e.code == "BracketRight") {
+				this._fovAction (1, true);
 			}
 		});
 		
@@ -119,6 +133,10 @@ export class Phosphor {
 				this._leftAction (false);
 			} else if ((e.code == "ArrowRight") || (e.code == "KeyD")) {
 				this._rightAction (false);
+			} else if (e.code == "BracketLeft") {
+				this._fovAction (-1, false);
+			} else if (e.code == "BracketRight") {
+				this._fovAction (1, false);
 			}
 		});
 	}
@@ -261,9 +279,24 @@ export class Phosphor {
 		context.fillText (fps, 126, 396);
 	}
 	
+	_drawFOV (context) {
+		const degrees = Math.round (this.camera.fov * 180 / Math.PI);
+		context.font = "18px Arial";
+		context.fillStyle = "#00BB00";
+		context.textAlign = "right";
+		context.fillText (degrees + '° hFOV  [ / ]', 226, 416);
+	}
+	
 	animationLoop = (currentTime) => {
 		var fps = this.fps.fps ();
 		var startTime = this.fps.startFrame ();
+		
+		if (this.fovDecreaseKeyDown) {
+			this.camera.fov = Math.max (Camera.FOV_MIN, this.camera.fov - 0.01);
+		}
+		if (this.fovIncreaseKeyDown) {
+			this.camera.fov = Math.min (Camera.FOV_MAX, this.camera.fov + 0.01);
+		}
 		
 		if (this.crawler) {
 			if (this.userControlling) {
@@ -293,6 +326,7 @@ export class Phosphor {
 			var frameTime = this.fps.endFrame ();
 			this._drawFPS (this.ctx, frameTime, fps);
 		}
+		this._drawFOV (this.ctx);
 		
 		// Kick off another animation loop.
 		requestAnimationFrame (this.animationLoop);
