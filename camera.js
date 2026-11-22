@@ -47,10 +47,19 @@ export class Camera {
 	
 	projectPoints(matrix, points) {
 		matrix.multiplyMatrix (this._getCameraTransform());
+		matrix.multiplyMatrix (this._getPerspectiveTransform());
+		return this._toScreen (matrix.multiplyPoints (points));
+	}
+	
+	// Like projectPoints, for points already in view space (after the camera
+	// transform): applies only the perspective. Used for billboard faces.
+	projectViewPoints(points) {
+		return this._toScreen (this._getPerspectiveTransform().multiplyPoints (points));
+	}
+	
+	_toScreen (multipliedPoints) {
 		const width = this.viewPortWidth;
 		const height = this.viewPortHeight;
-		matrix.multiplyMatrix (this._getPerspectiveTransform());
-		const multipliedPoints = matrix.multiplyPoints (points)
 		return multipliedPoints.map(point => {
 			const [x, y, z, w, valid] = point;
 			const screenX = (x + 1) / 2 * width;

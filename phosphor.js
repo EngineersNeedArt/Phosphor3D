@@ -223,6 +223,23 @@ export class Phosphor {
 		
 		// Stroke.
 		if (polygon.stroke) {
+			if (polygon.hiddenEdges) {
+				// Rebuild the outline without the hidden edges (the fill above used the whole polygon).
+				this.ctx.beginPath();
+				const vertices = polygon.vertices;
+				let penDown = false;
+				for (let v = 0; v < vertices.length - 1; v++) {
+					if (polygon.hiddenEdges.includes(v)) {
+						penDown = false;
+						continue;
+					}
+					if (!penDown) {
+						this.ctx.moveTo (vertices[v][0], vertices[v][1]);
+						penDown = true;
+					}
+					this.ctx.lineTo (vertices[v + 1][0], vertices[v + 1][1]);
+				}
+			}
 			this.ctx.lineWidth = 3;
 			this.ctx.strokeStyle = polygon.stroke;
 			this.ctx.stroke();

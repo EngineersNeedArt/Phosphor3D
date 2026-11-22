@@ -6,6 +6,10 @@ export class Face {
 	stroke = null;
 	fill = null;
 	doublesided = false;
+	// Optional: edges NOT to stroke, by position -- edge i runs from vertices[i] to
+	// vertices[i + 1]. The face is still filled across them. Use it to hide the joins
+	// where convex pieces butt together to make a larger, non-convex shape.
+	hiddenEdges = null;
 	
 	constructor() {
 		this.depth = 0;
